@@ -61,7 +61,7 @@ q = Pspawner({ |sp|
         // take random offset for each phrase
         sp.par(Pfindur(sus, Psetpre(\timeOffset, 5.0.rand, p)));
         delta = sus / (~spLegato * randomizer.(~spDev));
-        sp.wait(delta)
+        sp.wait(delta + 2)
     }
 });
 
