@@ -32,16 +32,27 @@ var dur = transition*2 + sustain / overlap;
 	\sus, sustain,
 	\rel, transition,
 	\pan, Pfunc { 1.0.rand2 },
-	\freqs, Pfunc { {6000.0.linrand+80}.dup(12) },
+	\freqs, Pfunc { {100.linrand.range(*[60, 67].collect { |n| n.midicps})}.dup(12) },
 	\rings, Pfunc { {0.1.rrand(3)}.dup(12) },
 	\dur, dur
 );
 )
 ~tex.play;
 
+~iris[0] = { SoundIn.ar(2).dup }
+~iris.play;
+
+
+
+60.midicps
+
 ~tex[10] = \filter -> { |in| JPverb.ar(in, t60: 5, lowcut: 14000, highcut: 15000) }
 
 ~tex.stop(5)
+
+~gate = { 0 }
+~tex[9] = \filter -> { |in| in * EnvGen.ar(Env.adsr(3, 0.5, 0.4), ~gate) }
+
 
 
 s.record

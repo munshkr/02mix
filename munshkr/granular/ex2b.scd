@@ -18,6 +18,11 @@ SynthDef(\gran_2b, { |out = 0, pos = 0, sndBuf = 0, windowBuf = 1, granDur = 0.1
 
 
 b = Buffer.read(s, Platform.miSCellaneousDirs[0] +/+ "Sounds" +/+ "kitchen_sounds_1.wav");
+
+~samplesPath = Platform.userHomeDir +/+ "Samples" +/+ "granular";
+~b2 = Buffer.read(s, ~samplesPath +/+ "325235__psychopancake__rubbing-metal.wav");
+~b3 = Buffer.read(s, ~samplesPath +/+ "257625__maghas99__balinese-gamelan.wav");
+
 // This searches the most likely extension places for the miSCellaneous folder.
 // In case of an extraordinary install situation or a removed sound file, pass the concerned path.
 
@@ -88,7 +93,7 @@ d = { |keyLo, keyHi, betaProb = 0.3, brownStepFac = 0.01,
 (
 p = Pbind(
     \instrument, \gran_2b,
-    \sndBuf, b,
+    \sndBuf, ~b2,
     \windowBuf, w,
 
     \dur, 1 / PLswitch1(d.(\trigRateLo, \trigRateHi), \trigRateD),
