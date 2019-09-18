@@ -19,10 +19,12 @@ p = ProxySpace.push(s);
 
 // mix Jack input into a single channel
 ~jack[0] = { Pan2.ar(Mix(SoundIn.ar([0,1]))) * 0.3 };
+~jack[100] = \filter -> { |in| Limiter.ar(in) };
 ~jack.play;
 ~jack.stop;
 
 ~jackfx[0] = { Pan2.ar(Mix(SoundIn.ar([0,1]))) };
+~jackfx[100] = \filter -> { |in| Limiter.ar(in) };
 ~jackfx.play;
 ~jackfx.stop;
 

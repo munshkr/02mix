@@ -2,28 +2,22 @@
 ~jack.stop;
 
 (
-SynthDef.new(\uno, { |in = 0, out = 0|
-	var sig, cut, pulse, filteredPulse;
-	pulse = Pulse.ar(~pfq, SinOsc.kr(~pwm).range(0.01, 0.99));
-	// pulse = Pulse.ar(~pfq, SinOsc.kr(1/2).range(0.2,0.8));
-	sig = SoundIn.ar(in!2, 0.7) * pulse;
-	Out.ar(out, [sig * ~leftAmp, sig * ~rightAmp]);
-}).add;
-
 ~pfq = {1/8};
 ~pwm = {2};
 ~amp = {0.25};
 )
 
-~uno[0] = \uno;
-~uno.play;
+~jackfx.play;
+~jackfx[10] = \filter -> { |in| in * 0.7 * Pulse.ar(~pfq, SinOsc.kr(~pwm).range(0.01, 0.99)) };
 
-~uno[100] = \filter -> {|in| Limiter.ar(in) };
+(
+~pwm = { SinOsc.kr(1/32).range(0.125, 0.875) };
+~pfq = { 7 };
+)
 
-~pwm = { SinOsc.kr(0.25).range(0.25, 0.75)}
-~pfq = { 7 }
 ~leftAmp = { SinOsc.kr(0.0125).range(0, 1)}
 ~rightAmp = { SinOsc.kr(0.125, 0.5).range(0, 1)}
+~jackfx[20] = \filter -> { |in| var sig = Mix(in); [sig * ~leftAmp, sig * ~rightAmp] };
 
 (
 ~pfq = \setsrc -> Pbind(
@@ -32,15 +26,30 @@ SynthDef.new(\uno, { |in = 0, out = 0|
 );
 )
 
-~uno.set(\wet10, 0.5);
-~uno[10] = \filter -> { |in| JPverb.ar(in, t60: 1) }
+~jackfx.set(\wet10, 0.5);
+~jackfx[11] = \filter -> { |in| JPverb.ar(in, t60: 0.25) }
 
-~uno[10] = nil;
+~jackfx[11] = nil;
 
-~uno.set(\wet11, 0.5);
-~uno[11] = \filter -> { |in| Resonz.ar(in, SinOsc.kr(1/8).range(300, 2800), 0.3) }
+~jackfx[11] = \filter -> { |in| Resonz.ar(in, SinOsc.kr(1/8).range(300, 2800), 0.9) }
+~jackfx.set(\wet11, 0.7)
 
-~uno.set(\wet20, 0.75);
-~uno[20] = \filter -> { |in| RLPF.ar(in, SinOsc.kr(1/32).range(440, 4000), LFTri.kr(1/4).range(0.1, 1.0)) };
+~jackfx[12] = \filter -> { |in| Ringz.ar(in, 70.midicps, 0.1) }
+~jackfx.set(\wet12, 0.1)
 
-~uno.clear(5);
+~jackfx.set(\wet12, 0.75);
+~jackfx[12] = \filter -> { |in| RLPF.ar(in, SinOsc.kr(1/32).range(440, 4000), LFTri.kr(1/4).range(0.1, 1.0)) };
+
+////
+
+~j2[0] = { Pan2.ar(Mix(SoundIn.ar([0,1]))) };
+~j2[100] = \filter -> { |in| Limiter.ar(in) };
+
+~j2[10] = \filter -> { |in| Resonz.ar(in, MouseX.kr(1000, 4000), MouseY.kr(0.01, 0.9)) }
+
+~j2.set(\wet11, 0.01);
+~j2[11] = \filter -> { |in| DynKlank.ar(`[[880, 440, 110, Array.rand(12, 800.0, 2000.0)], nil, [1, 1, 1, 1]], in) }
+
+~j2[20] = \filter -> { |in| 0.3 * Limiter.ar((RLPF.ar(in, SinOsc.kr(1/8).range(200, 2200), 0.8)).tanh) }
+~j2[30] = \filter -> { |in| JPverb.ar(in, damp: 0, t60: 5, lowcut: 400, highcut: 3000) }
+

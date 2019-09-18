@@ -28,8 +28,4 @@
 ~jackfx[30] = nil
 
 ~jackfx[40] = \filter -> { |in| IFFT(PV_MagFreeze(Array.fill(in.size, { |i| FFT(LocalBuf(4096), in[i])}), SinOsc.kr(1/4) > 0.75)) };
-
 // ~jackfx.set(\wet40, 1);
-
-// ~jackfx[40] = \filter -> { |in| in * EnvGen.kr(Env.adsr(releaseTime: 3), Onsets.kr(Array.fill(in.size, { |i| FFT(LocalBuf(512), in[i], wintype: 1)}), 0.02)) };
-// ~jackfx[40] = nil;
