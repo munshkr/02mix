@@ -5,6 +5,7 @@
 (
 // for OSX:
 //s.options.device = "UMC404HD 192k";
+s.options.memSize_(65536 * 4);
 s.options.numOutputBusChannels = 4;
 s.options.numInputBusChannels = 4;
 s.boot;
@@ -17,11 +18,11 @@ s.scope;
 p = ProxySpace.push(s);
 
 // mix Jack input into a single channel
-~jack[0] = { Mix(SoundIn.ar([0,1])) };
+~jack[0] = { Pan2.ar(Mix(SoundIn.ar([0,1]))) * 0.3 };
 ~jack.play;
 ~jack.stop;
 
-~jackfx[0] = { Mix(SoundIn.ar([0,1])) };
+~jackfx[0] = { Pan2.ar(Mix(SoundIn.ar([0,1]))) };
 ~jackfx.play;
 ~jackfx.stop;
 
@@ -39,12 +40,10 @@ p = ProxySpace.push(s);
 //
 
 (
-var decoder;
-
 // (use this if on earphones)
-decoder = FoaDecoderKernel.newUHJ;
+d = FoaDecoderKernel.newUHJ;
 // pantophonic decoder
-//decoder = FoaDecoderMatrix.newPanto(numChans: 4, orientation: 'flat', k: 'single')
+//d = FoaDecoderMatrix.newPanto(numChans: 4, orientation: 'flat', k: 'single')
 
 //~foa.reshaping = \elastic;
 ~angle = { 0 };
@@ -69,7 +68,7 @@ f = { |in|
 	foa = HPF.ar(foa, 10);
 	foa = FoaTransform.ar(foa, 'proximity', ~distance);
 	// Decode
-	foa = FoaDecode.ar(foa, decoder);
+	foa = FoaDecode.ar(foa, d);
 	//foa = LeakDC.ar(foa);
 	foa;
 };
