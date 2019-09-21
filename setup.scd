@@ -15,6 +15,9 @@ s.waitForBoot {
 
 	NdefMixer(s);
 
+	s.prepareForRecord(nil, 4);
+	// CmdPeriod.add({ s.stopRecording });
+
 	// function for referencing synthdefs with nodeproxies
 	// f = { |key=\default| SynthDescLib.global.at(key).def.func };
 };
@@ -25,6 +28,8 @@ Ndef(\test).clear;
 
 // set up nodeproxies
 (
+s.stopRecording;
+
 // mix Jack input into a single channel
 ~makeJack = { |id="", amp=0.5|
 	var key = ("jack" ++ id).asSymbol;
@@ -42,6 +47,8 @@ Ndef(\test).clear;
 ~iris[0] = { SoundIn.ar([2,3]) };
 ~iris[100] = \filter -> { |in| Limiter.ar(in) };
 ~iris.play(vol: 1);
+
+s.record;
 )
 
 //
