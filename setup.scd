@@ -8,62 +8,44 @@
 s.options.memSize_(65536 * 4);
 s.options.numOutputBusChannels = 4;
 s.options.numInputBusChannels = 4;
-s.boot;
-s.scope;
 
-FreqScope.new;
+s.waitForBoot {
+	s.scope;
+	// FreqScope.new;
 
-// function for referencing synthdefs with nodeproxies
-// f = { |key=\default| SynthDescLib.global.at(key).def.func };
+	NdefMixer(s);
+
+	// function for referencing synthdefs with nodeproxies
+	// f = { |key=\default| SynthDescLib.global.at(key).def.func };
+};
 )
 
-p = ProxySpace.push(s);
-p.gui;
+Ndef(\test, { PinkNoise.ar });
+Ndef(\test).clear;
 
+// set up nodeproxies
 (
-~test = { Out.ar(0, Pan2.ar(SinOsc.ar(440))) };
-//~test = { Out.ar(0, WhiteNoise.ar * 0.05) };
-~test.play;
-
-~test2 = { Out.ar(2, Pan2.ar(SinOsc.ar(440))) };
-//~test = { Out.ar(0, WhiteNoise.ar * 0.05) };
-~test2.play;
-)
-~test.clear;
-~test2.clear;
-
-
 // mix Jack input into a single channel
-(
-~jack.clear;
-~jack[0] = { Pan2.ar(Mix(SoundIn.ar([0,1]))) * 0.5 };
-~jack[100] = \filter -> { |in| Limiter.ar(in) };
-~jack.play;
-)
-~jack.stop;
+~makeJack = { |id="", amp=0.5|
+	var key = ("jack" ++ id).asSymbol;
 
-// fx output example
-~jackfx[0] = { Pan2.ar(Mix(SoundIn.ar([0,1]))) };
-~jackfx[100] = \filter -> { |in| Limiter.ar(in) };
-~jackfx.play;
-~jackfx.stop;
+	Ndef(key).clear;
+	Ndef(key)[0] = { Pan2.ar(SoundIn.ar(0)) };
+	Ndef(key)[100] = \filter -> { |in| Limiter.ar(in) };
+	Ndef(key);
+};
+~jack = ~makeJack.().play(vol: 0.3);
 
 // stereo input
-~iris = nil
-
-~iris.clear;
-(
+~iris = Ndef(\iris);
 ~iris.clear;
 ~iris[0] = { SoundIn.ar([2,3]) };
-~iris.play;
+~iris[100] = \filter -> { |in| Limiter.ar(in) };
+~iris.play(vol: 1);
 )
 
-~iris2.clear
-
-~iris.stop;
-
 //
-// Ambisonics setup
+// Global ambisonics setup
 //
 
 (
@@ -73,27 +55,27 @@ d = FoaDecoderKernel.newUHJ(kernelSize: 256);
 //d = FoaDecoderMatrix.newPanto(numChans: 4, orientation: 'flat', k: 'single');
 
 //~foa.reshaping = \elastic;
-~angle = { 0 };
-~azim = { 0 };
-~distance = { 0.5 };
+Ndef(\angle, { 0 });
+Ndef(\azim, { 0 });
+Ndef(\distance, { 0.5 });
 
 f = { |in|
 	var foa, encoder, angle, azim;
 	// angle ---> top        = push to plane wave
 	//            bottom     = omni-directional
-	angle = Lag.kr(~angle, 0.1);
+	angle = Lag.kr(Ndef(\angle), 0.1);
 	// azimuth -> hard left  = back
 	//            centre     = centre
 	//            hard right = back
-	azim = Lag.kr(~azim, 0.1);
+	azim = Lag.kr(Ndef(\azim), 0.1);
 	encoder = FoaEncoderMatrix.newOmni;
 	// Encode into our foa signal
 	foa = FoaEncode.ar(in, encoder);
 	// Push transform
-	foa = FoaTransform.ar(foa, 'push', angle, azim);
+	foa = FoaTransform.ar(foa, \push, angle, azim);
 	// Proximity effect
 	foa = HPF.ar(foa, 10);
-	foa = FoaTransform.ar(foa, 'proximity', ~distance);
+	foa = FoaTransform.ar(foa, 'proximity', Ndef(\distance));
 	// Decode
 	foa = FoaDecode.ar(foa, d);
 	//foa = LeakDC.ar(foa);
@@ -101,17 +83,18 @@ f = { |in|
 };
 )
 
-
 // test ambisonics on jack input
-~jackfx[99] = \filter -> f;
+
 (
-~angle = { SinOsc.kr(1).range(pi/2, 0) };
-~azim = { SinOsc.kr(1/8).range(pi, -pi) };
+~jack[90] = \filter -> f;
+Ndef(\angle, { SinOsc.kr(1).range(pi/2, 0) });
+Ndef(\azim, { SinOsc.kr(1/8).range(pi, -pi) });
 )
 
 // another example
 (
-~jackfx[99] = \filter -> f;
-~angle = { SinOsc.kr(LFTri.kr(1/8).range(0.125, 4)).range(pi/2, 0) };
-~azim = { SinOsc.kr(1/8).range(pi, -pi) };
+Ndef(\angle, { SinOsc.kr(LFTri.kr(1/8).range(0.125, 4)).range(pi/2, 0) });
+Ndef(\azim, { SinOsc.kr(1/8).range(pi/2, -pi/2) });
 )
+
+~jack[90] = nil;

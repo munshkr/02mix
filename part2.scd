@@ -1,102 +1,72 @@
 // Part 2
-~jack.stop;
+(
+~j2 = ~makeJack.(2).play(vol: 0.04).stop;
+)
 
 (
-~pfq = {1};
-~pwm = {1/4};
-~amp = {0.2};
-~leftAmp = { SinOsc.kr(0.0125).range(0.5, 1)};
-~rightAmp = { SinOsc.kr(0.125, 0.5).range(0.5, 1)};
-
-~ritmoAmp[0] = {
-	var in = Pan2.ar(Mix(SoundIn.ar([0,1])));
-	var p = Pulse.ar(~pfq, SinOsc.kr(~pwm).range(0.1, 0.9));
-	var sig = in * EnvGen.kr(Env.perc(0.01, 1/8), gate: p) * ~amp;
-	//var sig = in * p  * ~amp;
-	[sig * ~leftAmp, sig * ~rightAmp];
+~j2[10] = \filter -> { |in|
+	Resonz.ar(in,
+		MouseX.kr(1000, 4000),
+		MouseY.kr(0.01, 0.9)
+	)
 };
-~ritmoAmp[99] = \filter -> { |in| Limiter.ar(in) };
 )
-~ritmoAmp.play;
-
-//~foo[1] = \filter -> { |in| FreqShift.ar(in, freq: SinOsc.kr(2).range(0, 100), phase: 0.25) }
-//~foo.set(\wet1, 0.75)
-//~foo[1] = nil
-
-//~foo2[2] = \filter -> { |in| DelayC.ar(in, 5, [1/2, 1/3]) };
-//~foo2[2] = nil
-
-//~foo2[3] = \filter -> { |in| Pan2.ar(in, SinOsc.kr(8).range(0, 1)) };
-//~foo2[3] = nil
-
-//~foo2[10] = \filter -> { |in| (in * 0.5) + (in * SinOsc.kr(SinOsc.kr(1/8).range(0.125, 16)).range(0,1) * 0.5) };
-
-//~iris[10] = nil
 
 (
-~pwm = { SinOsc.kr(1/32).range(0.125, 0.875) };
-~pfq = { SinOsc.kr(1/16).range(0.25, 2) };
+~j2[20] = \filter -> { |in|
+	0.3 * Limiter.ar(
+		(
+			RLPF.ar(in,
+				SinOsc.kr(1/8).range(200, 2200),
+				0.8
+			)
+		).tanh
+	)
+};
 )
-
-~pwm = { 0.5 };
-~pfq = { 1 };
 
 (
-~pfq = \setsrc -> Pbind(
-	\source, Pseq([2, 20, 0.5, 0.7, 40, 7, 4, 90], inf),
-	\dur, Prand([1/8],inf)
-);
+~j2[30] = \filter -> { |in|
+	JPverb.ar(in, damp: 0, t60: 5, lowcut: 400, highcut: 3000)
+};
 )
 
-~ritmoAmp.clear(3)
-
-~ritmoAmp.set(\wet10, 0.3);
-~ritmoAmp[10] = \filter -> { |in| JPverb.ar(in, t60: 1) };
-~ritmoAmp.set(\wet11, 0.4);
-~ritmoAmp[11] = \filter -> { |in| RLPF.ar(in, SinOsc.kr(10).range(500, 6000), rq: 0.8) };
-
-
-/*
-~j1.set(\wet10, 0.5);
-~j1[11] = \filter -> { |in| JPverb.ar(in, t60: 1) }
-~j1[11] = nil;
-
-~j1.set(\wet11, 0.7)
-~j1[11] = \filter -> { |in| Resonz.ar(in, SinOsc.kr(1/8).range(300, 2800), 0.9) }
-
-~j1.set(\wet12, 0.02)
-~j1[12] = \filter -> { |in| Ringz.ar(in, 70.midicps, 0.1) }
-
-~j1.set(\wet12, 0.5);
-~j1[12] = \filter -> { |in| RLPF.ar(in, SinOsc.kr(1/32).range(440, 4000), LFTri.kr(1/4).range(0.1, 1.0)) };
-*/
-
-
-// resonant fx
-
-~j2[0] = { Pan2.ar(Mix(SoundIn.ar([0,1]))) };
-~j2[100] = \filter -> { |in| Limiter.ar(in) };
-
-~j2[10] = \filter -> { |in| Resonz.ar(in, MouseX.kr(1000, 4000), MouseY.kr(0.01, 0.9)) }
-
-~j2[20] = \filter -> { |in| 0.3 * Limiter.ar((RLPF.ar(in, SinOsc.kr(1/8).range(200, 2200), 0.8)).tanh) }
-~j2[30] = \filter -> { |in| JPverb.ar(in, damp: 0, t60: 5, lowcut: 400, highcut: 3000) }
-
+(
 ~j2.set(\wet11, 0.01);
-//~j2[11] = \filter -> { |in| DynKlank.ar(`[[Array.rand(12, 800.0, 2000.0)], nil, [1, 1, 1, 1]], in) }
+~j2[11] = \filter -> { |in|
+	DynKlank.ar(`[[Array.rand(12, 800.0, 2000.0)], nil, [1, 1, 1, 1]], in)
+	* SinOsc.kr(1/32).range(0, 1)
+};
+)
+
 //~j2[11] = \filter -> { |in| DynKlank.ar(`[[32.70320, 123.4708, 130.8128, 138.5909, 155.5635, 164.8138], nil, [1, 1, 1, 1]], in) }
-~j2[11] = nil
+// ~j2[11] = nil
 
+// ~j2g = { MouseX.kr(0,1) > 0.5 };
+// ~j2[50] = \filter -> { |in| in * EnvGen.ar(Env.adsr(attack: 0, release: 8), ~j2g) };
+// ~j2[50] = nil
 
-~j2g = { MouseX.kr(0,1) > 0.5 };
-~j2[50] = \filter -> { |in| in * EnvGen.ar(Env.adsr(attack: 0, release: 8), ~j2g) };
-~j2[50] = nil
-
-~j2.fadeTime = 5;
 ~j2.play;
 
-~j2.clear(5);
+~j2.stop(5);
 
+
+
+/// iris fx
+
+~iris.set(\wet30, 0);
+~iris[30] = \filter -> { |in| (in * 0.5) + (in * 0.5 * SinOsc.kr(SinOsc.kr(1/16).range(1, 8)).range(0,1)) };
+~iris.set(\wet30, 0.25);
+
+~iris.set(\wet40, 0);
+~iris[40] = \filter -> { |in| RLPF.ar(in, SinOsc.kr(1/16).range(600, 30000), 0.5) };
+~iris.set(\wet40, 0.5);
+
+~iris.set(\wet60, 0);
+~iris[60] = \filter -> { |in| JPverb.ar(in, t60: 3) };
+~iris.set(\wet60, 0.3);
+
+///
 
 // grains
 (
