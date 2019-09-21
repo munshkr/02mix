@@ -11,31 +11,56 @@ s.options.numInputBusChannels = 4;
 s.boot;
 s.scope;
 
+FreqScope.new;
+
 // function for referencing synthdefs with nodeproxies
 // f = { |key=\default| SynthDescLib.global.at(key).def.func };
 )
 
 p = ProxySpace.push(s);
+p.gui;
+
+(
+~test = { Out.ar(0, Pan2.ar(SinOsc.ar(440))) };
+//~test = { Out.ar(0, WhiteNoise.ar * 0.05) };
+~test.play;
+
+~test2 = { Out.ar(2, Pan2.ar(SinOsc.ar(440))) };
+//~test = { Out.ar(0, WhiteNoise.ar * 0.05) };
+~test2.play;
+)
+~test.clear;
+~test2.clear;
+
 
 // mix Jack input into a single channel
-~jack[0] = { Pan2.ar(Mix(SoundIn.ar([0,1]))) * 0.3 };
+(
+~jack.clear;
+~jack[0] = { Pan2.ar(Mix(SoundIn.ar([0,1]))) * 0.5 };
 ~jack[100] = \filter -> { |in| Limiter.ar(in) };
 ~jack.play;
+)
 ~jack.stop;
 
+// fx output example
 ~jackfx[0] = { Pan2.ar(Mix(SoundIn.ar([0,1]))) };
 ~jackfx[100] = \filter -> { |in| Limiter.ar(in) };
 ~jackfx.play;
 ~jackfx.stop;
 
 // stereo input
+~iris = nil
+
+~iris.clear;
+(
+~iris.clear;
 ~iris[0] = { SoundIn.ar([2,3]) };
 ~iris.play;
-~iris.stop;
+)
 
-~irisfx[0] = { SoundIn.ar([2,3]) };
-~irisfx.play;
-~irisfx.stop;
+~iris2.clear
+
+~iris.stop;
 
 //
 // Ambisonics setup
@@ -43,9 +68,9 @@ p = ProxySpace.push(s);
 
 (
 // (use this if on earphones)
-d = FoaDecoderKernel.newUHJ;
+d = FoaDecoderKernel.newUHJ(kernelSize: 256);
 // pantophonic decoder
-//d = FoaDecoderMatrix.newPanto(numChans: 4, orientation: 'flat', k: 'single')
+//d = FoaDecoderMatrix.newPanto(numChans: 4, orientation: 'flat', k: 'single');
 
 //~foa.reshaping = \elastic;
 ~angle = { 0 };
@@ -76,9 +101,10 @@ f = { |in|
 };
 )
 
+
 // test ambisonics on jack input
-(
 ~jackfx[99] = \filter -> f;
+(
 ~angle = { SinOsc.kr(1).range(pi/2, 0) };
 ~azim = { SinOsc.kr(1/8).range(pi, -pi) };
 )

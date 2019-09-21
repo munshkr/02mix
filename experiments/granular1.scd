@@ -32,17 +32,8 @@ var samplesPath = Platform.userHomeDir +/+ "Samples" +/+ "granular";
 b = Buffer.read(s, samplesPath +/+ "325235__psychopancake__rubbing-metal.wav");
 )
 
-// Determining the correct buffer position depending on
-// posRate, posLo and posHi needs a little calculation.
-// In 1a this was done inside the ugen by a Phasor.
-// See Ex.3b, 3c for doing position movement with a separate Synth.
-
-// PL placeholder patterns used, could also be Pfunc { ~ ... }
-
-
-
 (
-Pdef(\g1, Pbind(
+~g1 = Pbind(
     \instrument, \gran_2a,
     \sndBuf, b,
     \windowBuf, w,
@@ -71,22 +62,8 @@ Pdef(\g1, Pbind(
 	\amp, Pwhite(0.6, 0.9, inf),
     \panMax, Pseq([-1,1], inf) * 0.75,
     \out, 0
-));
-
-/*
-VarGui([
-    \posLo, [0.0, 0.99, \lin, 0.01, 0],
-    \posHi, [0.0, 0.99, \lin, 0.01, 1],
-    \posRate, [0.1, 2, \lin, 0.01, 1],
-    \posDev, [0, 0.2, 5, 0, 0.01],
-    \trigRate, [1, 200, \lin, 0.01, 120],
-    \granDur, [0.01, 0.3, \lin, 0.005, 0.06],
-    \rate, [0.1, 3, \lin, 0.01, 1],
-    \panMax, [0.0, 1, \lin, 0.0, 0.8],
-    \amp, [0.0, 1, \lin, 0.01, 0.25]
-    ], stream: p
-).gui(varColorGroups: (0..8).clumps([4,1,1,1,1,1]))
-*/
+);
 )
 
-Pdef(\g1).stop
+
+~g1.stop
