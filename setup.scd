@@ -1,3 +1,5 @@
+// Run :SCNvimStart
+
 //
 // Audio setup
 //
