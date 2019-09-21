@@ -10,16 +10,15 @@
 s.options.memSize_(65536 * 4);
 s.options.numOutputBusChannels = 4;
 s.options.numInputBusChannels = 4;
+s.options.recHeaderFormat = "wav";
+s.options.recChannels = 4;
 
 s.waitForBoot {
 	s.scope;
+	s.prepareForRecord;
 	// FreqScope.new;
-
 	NdefMixer(s);
-
-	s.prepareForRecord(nil, 4);
 	// CmdPeriod.add({ s.stopRecording });
-
 	// function for referencing synthdefs with nodeproxies
 	// f = { |key=\default| SynthDescLib.global.at(key).def.func };
 };
@@ -107,3 +106,4 @@ Ndef(\azim, { SinOsc.kr(1/8).range(pi/2, -pi/2) });
 )
 
 ~jack[90] = nil;
+
